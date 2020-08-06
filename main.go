@@ -61,8 +61,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		break
 	case http.MethodPost:
 		r.ParseForm()
-		username := r.Form["username"][0]
-		password := r.Form["password"][0]
+		username := r.Form["_u"][0]
+		password := r.Form["_p"][0]
+
+		log.Println(r.Form)
+
 		url := r.Form["url"][0]
 		hasher := md5.New()
 		hasher.Write([]byte(username))
