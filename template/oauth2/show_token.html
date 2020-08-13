@@ -1,0 +1,29 @@
+{{ define "body" }} {{ with .Param }}
+<h2>Token Information</h2>
+<p style="color: red;">
+  DO NOT SHARE THESE WITH OTHERS. IT IS STRONGLY RECOMMENDED TO CLEAR BROWSER
+  SESSION AFTER CONFIRMING THE TOKEN WAS SUCCESSFULLY ACQUIRED.
+</p>
+<table class="table">
+  <tr>
+    <th>Access Token</th>
+    <td>{{ .AccessToken }}</td>
+  </tr>
+  <tr>
+    <th>Expires In</th>
+    <td>{{ .ExpiresIn }}</td>
+  </tr>
+  <tr>
+    <th>Refresh Token</th>
+    <td>{{ .RefreshToken }}</td>
+  </tr>
+  <tr>
+    <th>Scope</th>
+    <td>{{ .Scope }}</td>
+  </tr>
+  <tr>
+    <th>Token Type</th>
+    <td>{{ .TokenType }}</td>
+  </tr>
+</table>
+{{ end }} {{ end }}
