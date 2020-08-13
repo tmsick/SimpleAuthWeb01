@@ -19,6 +19,10 @@ import (
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 var sessionName = "session"
 
+type PersonCollection struct {
+	Persons []Person
+}
+
 type Person struct {
 	ID      int
 	Name    string `json:"name"`
@@ -30,15 +34,19 @@ type Person struct {
 }
 
 func loadData() (result []Person) {
-	raw, _ := ioutil.ReadFile("./data.json")
-	err := json.Unmarshal(raw, &result)
+	raw, err := ioutil.ReadFile("./data.json")
 	if err != nil {
-		log.Printf("err %v\n", err)
+		log.Fatal(err)
 	}
+
+	if err := json.Unmarshal(raw, &result); err != nil {
+		log.Fatal(err)
+	}
+
 	for i := range result {
 		result[i].ID = i
 	}
-	// log.Printf("data %v\n", result)
+
 	return
 }
 
