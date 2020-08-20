@@ -17,10 +17,14 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/yuru-dev/SimpleAuthWeb01/oauth2"
+	"github.com/yuru-dev/SimpleAuthWeb01/oauth2/user"
 )
 
 // https://developers.google.com/identity/protocols/oauth2/scopes#iamcredentials
-var exampleScope = []string{"profile", "email"}
+var exampleScope = []string{
+	"https://www.googleapis.com/auth/userinfo.email",
+	"https://www.googleapis.com/auth/userinfo.profile",
+}
 
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 var sessionName = "session"
@@ -151,20 +155,26 @@ func oauth2AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func oauth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
-	if e := r.FormValue("error"); e != "" {
-		log.Fatal(e)
+	if err := r.FormValue("error"); err != "" {
+		log.Printf("error returned from OAuth2 service provider: %v\n", err)
+		http.Redirect(w, r, "/oauth2/failure", http.StatusFound)
+		return
 	}
 
 	code := r.FormValue("code")
 	if code == "" {
-		log.Fatal(code)
+		log.Println("empty code returned from OAuth2 service provider")
+		http.Redirect(w, r, "/oauth2/failure", http.StatusFound)
+		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	token, err := oauth2.ExchangeToken(ctx, code)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("failed to exchange OAuth2 code with token: %v\n", err)
+		http.Redirect(w, r, "/oauth2/failure", http.StatusFound)
+		return
 	}
 
 	session, err := store.Get(r, sessionName)
@@ -180,29 +190,44 @@ func oauth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	session.Values["oauth2_token_type"] = token.TokenType
 	err = session.Save(r, w)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("error saving session: %v\n", err)
+		http.Redirect(w, r, "/oauth2/failure", http.StatusFound)
+		return
 	}
 	// !!! I AM INTENTIONALLY DOING ABOVE FOR THE SAKE OF INSPECTION !!!
 
-	http.Redirect(w, r, "/oauth2/show_token", http.StatusFound)
+	http.Redirect(w, r, "/oauth2/success", http.StatusFound)
 }
 
-// !!! IN PRODUCTION, DO NOT SHOW USERS TOKENS IN PLAINTEXT !!!
-func oauth2ShowSessionHandler(w http.ResponseWriter, r *http.Request) {
+func oauth2SuccessHandler(w http.ResponseWriter, r *http.Request) {
 	session, err := store.Get(r, sessionName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	token := map[string]interface{}{
-		"AccessToken":  session.Values["oauth2_access_token"],
-		"ExpiresIn":    session.Values["oauth2_expires_in"],
-		"RefreshToken": session.Values["oauth2_refresh_token"],
-		"Scope":        session.Values["oauth2_scope"],
-		"TokenType":    session.Values["oauth2_token_type"],
+	token, err := oauth2.GetTokenFromSession(session)
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
 	}
-	log.Printf("%#v\n", token)
-	renderPage(w, r, session, "oauth2/show_token.html", token)
+
+	user, err := user.RequestUserProfile(token)
+	if err != nil {
+		log.Printf("failed to get user profile: %v\n", err)
+		http.Redirect(w, r, "/oauth2/failure", http.StatusFound)
+		return
+	}
+
+	renderPage(w, r, session, "oauth2/success.html", user)
+}
+
+func oauth2FailureHandler(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, sessionName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	renderPage(w, r, session, "oauth2/failure.html", nil)
 }
 
 func main() {
@@ -217,8 +242,8 @@ func main() {
 	http.HandleFunc("/person/", personHandler)
 	http.HandleFunc("/oauth2/authorize", oauth2AuthorizeHandler)
 	http.HandleFunc("/oauth2/callback", oauth2CallbackHandler)
-	// !!! IN PRODUCTION, DO NOT SHOW USERS TOKENS IN PLAINTEXT !!!
-	http.HandleFunc("/oauth2/show_token", oauth2ShowSessionHandler)
+	http.HandleFunc("/oauth2/success", oauth2SuccessHandler)
+	http.HandleFunc("/oauth2/failure", oauth2FailureHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
