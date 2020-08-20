@@ -17,15 +17,14 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-const (
-	AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth"
-	TokenEndpoint         = "https://oauth2.googleapis.com/token"
-)
-
+// https://docs.microsoft.com/ja-jp/azure/active-directory/develop/active-directory-v2-protocols
+var TenantID = os.Getenv("OAUTH2_TENANT_ID")
 var (
-	ClientID     = os.Getenv("OAUTH2_CLIENT_ID")
-	ClientSecret = os.Getenv("OAUTH2_CLIENT_SECRET")
-	RedirectURL  = os.Getenv("OAUTH2_REDIRECT_URL")
+	AuthorizationEndpoint = fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/authorize", TenantID)
+	TokenEndpoint         = fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", TenantID)
+	ClientID              = os.Getenv("OAUTH2_CLIENT_ID")
+	ClientSecret          = os.Getenv("OAUTH2_CLIENT_SECRET")
+	RedirectURL           = os.Getenv("OAUTH2_REDIRECT_URL")
 )
 
 type TokenEntity struct {

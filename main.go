@@ -20,11 +20,8 @@ import (
 	"github.com/yuru-dev/SimpleAuthWeb01/oauth2/user"
 )
 
-// https://developers.google.com/identity/protocols/oauth2/scopes#iamcredentials
-var exampleScope = []string{
-	"https://www.googleapis.com/auth/userinfo.email",
-	"https://www.googleapis.com/auth/userinfo.profile",
-}
+// https://docs.microsoft.com/ja-jp/azure/active-directory/develop/v2-permissions-and-consent
+var exampleScope = []string{"openid", "email", "profile"}
 
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 var sessionName = "session"

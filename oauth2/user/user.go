@@ -11,18 +11,14 @@ import (
 )
 
 type User struct {
-	ID            string `json:"id"`
-	Email         string `json:"email"`
-	VerifiedEmail bool   `json:"verified_email"`
-	Name          string `json:"name"`
-	GivenName     string `json:"given_name"`
-	FamilyName    string `json:"family_name"`
-	Picture       string `json:"picture"`
-	Locale        string `json:"locale"`
-	HD            string `json:"hd"`
+	Sub        string `json:"sub"`
+	Name       string `json:"name"`
+	FamilyName string `json:"family_name"`
+	GivenName  string `json:"given_name"`
+	Email      string `json:"email"`
 }
 
-const GetProfileURL = "https://www.googleapis.com/oauth2/v2/userinfo"
+const GetProfileURL = "https://graph.microsoft.com/oidc/userinfo"
 
 func RequestUserProfile(t *oauth2.TokenEntity) (*User, error) {
 	req, err := http.NewRequest("GET", GetProfileURL, nil)
