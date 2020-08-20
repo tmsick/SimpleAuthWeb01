@@ -20,7 +20,7 @@ import (
 )
 
 // https://developers.google.com/identity/protocols/oauth2/scopes#iamcredentials
-var exampleScope = []string{"https://mail.google.com/"}
+var exampleScope = []string{"profile", "email"}
 
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 var sessionName = "session"
