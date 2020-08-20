@@ -16,12 +16,12 @@ import (
 const (
 	AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth"
 	TokenEndpoint         = "https://oauth2.googleapis.com/token"
-	RedirectURL           = "https://simplewebauth01-oauth2-zgehwjvvlq-an.a.run.app/oauth2/callback"
 )
 
 var (
 	ClientID     = os.Getenv("OAUTH2_CLIENT_ID")
 	ClientSecret = os.Getenv("OAUTH2_CLIENT_SECRET")
+	RedirectURL  = os.Getenv("OAUTH2_REDIRECT_URL")
 )
 
 type TokenEntity struct {
