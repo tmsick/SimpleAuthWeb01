@@ -233,6 +233,9 @@ func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.Handle("/favicon.ico", fs)
+	http.HandleFunc("/.well-known/microsoft-identity-association.json", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "static/microsoft-identity-association.json")
+	})
 	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/logout", logoutHandler)
