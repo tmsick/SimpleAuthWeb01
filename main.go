@@ -234,6 +234,7 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.Handle("/favicon.ico", fs)
 	http.HandleFunc("/.well-known/microsoft-identity-association.json", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		http.ServeFile(w, r, "static/microsoft-identity-association.json")
 	})
 	http.HandleFunc("/", homeHandler)
