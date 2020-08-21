@@ -3,18 +3,14 @@ package oauth2
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"mime"
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
-
-	"github.com/gorilla/sessions"
 )
 
 // https://docs.microsoft.com/ja-jp/azure/active-directory/develop/active-directory-v2-protocols
@@ -34,44 +30,6 @@ type TokenEntity struct {
 	Scope        string `json:"scope"`
 	TokenType    string `json:"token_type"`
 	Expiry       time.Time
-}
-
-func GetTokenFromSession(s *sessions.Session) (*TokenEntity, error) {
-	accessToken, ok := s.Values["oauth2_access_token"]
-	if !ok {
-		return nil, errors.New("OAuth2 session is not saved in the user-agent")
-	}
-
-	expiresIn, ok := s.Values["oauth2_expires_in"]
-	if !ok {
-		return nil, errors.New("OAuth2 session is not saved in the user-agent")
-	}
-
-	refreshToken, ok := s.Values["oauth2_refresh_token"]
-	if !ok {
-		return nil, errors.New("OAuth2 session is not saved in the user-agent")
-	}
-
-	scope, ok := s.Values["oauth2_scope"]
-	if !ok {
-		return nil, errors.New("OAuth2 session is not saved in the user-agent")
-	}
-
-	tokenType, ok := s.Values["oauth2_token_type"]
-	if !ok {
-		return nil, errors.New("OAuth2 session is not saved in the user-agent")
-	}
-
-	expiresInInt, _ := strconv.Atoi(expiresIn.(string))
-	token := TokenEntity{
-		AccessToken:  accessToken.(string),
-		ExpiresIn:    expiresInInt,
-		RefreshToken: refreshToken.(string),
-		Scope:        scope.(string),
-		TokenType:    tokenType.(string),
-		Expiry:       time.Now().Add(time.Duration(expiresInInt) * time.Second),
-	}
-	return &token, nil
 }
 
 func CreateAuthorizationRequestURL(scopes []string) (*url.URL, error) {

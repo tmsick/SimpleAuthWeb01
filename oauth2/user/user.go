@@ -10,15 +10,20 @@ import (
 	"github.com/yuru-dev/SimpleAuthWeb01/oauth2"
 )
 
+// https://docs.microsoft.com/ja-jp/graph/api/user-get?view=graph-rest-1.0&tabs=http
 type User struct {
-	Sub        string `json:"sub"`
-	Name       string `json:"name"`
-	FamilyName string `json:"family_name"`
-	GivenName  string `json:"given_name"`
-	Email      string `json:"email"`
+	DisplayName       string `json:"displayName"`
+	JobTitle          string `json:"jobTitle"`
+	Mail              string `json:"mail"`
+	MobilePhone       string `json:"mobilePhone"`
+	OfficeLocation    string `json:"officeLocation"`
+	PreferredLanguage string `json:"preferredLanguage"`
+	Surname           string `json:"surname"`
+	UserPrincipalName string `json:"userPrincipalName"`
+	ID                string `json:"id"`
 }
 
-const GetProfileURL = "https://graph.microsoft.com/oidc/userinfo"
+const GetProfileURL = "https://graph.microsoft.com/v1.0/me"
 
 func RequestUserProfile(t *oauth2.TokenEntity) (*User, error) {
 	req, err := http.NewRequest("GET", GetProfileURL, nil)

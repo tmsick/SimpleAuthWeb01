@@ -179,40 +179,9 @@ func oauth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	// !!! DO NOT STORE TOKEN IN PLAINTEXT IN USER AGENT !!!
-	session.Values["oauth2_access_token"] = token.AccessToken
-	session.Values["oauth2_expires_in"] = strconv.Itoa(token.ExpiresIn)
-	session.Values["oauth2_refresh_token"] = token.RefreshToken
-	session.Values["oauth2_scope"] = token.Scope
-	session.Values["oauth2_token_type"] = token.TokenType
-	err = session.Save(r, w)
-	if err != nil {
-		log.Printf("error saving session: %v\n", err)
-		http.Redirect(w, r, "/oauth2/failure", http.StatusFound)
-		return
-	}
-	// !!! I AM INTENTIONALLY DOING ABOVE FOR THE SAKE OF INSPECTION !!!
-
-	http.Redirect(w, r, "/oauth2/success", http.StatusFound)
-}
-
-func oauth2SuccessHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := store.Get(r, sessionName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	token, err := oauth2.GetTokenFromSession(session)
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-
 	user, err := user.RequestUserProfile(token)
 	if err != nil {
-		log.Printf("failed to get user profile: %v\n", err)
-		http.Redirect(w, r, "/oauth2/failure", http.StatusFound)
-		return
+		log.Fatal(err)
 	}
 
 	renderPage(w, r, session, "oauth2/success.html", user)
@@ -243,7 +212,6 @@ func main() {
 	http.HandleFunc("/person/", personHandler)
 	http.HandleFunc("/oauth2/authorize", oauth2AuthorizeHandler)
 	http.HandleFunc("/oauth2/callback", oauth2CallbackHandler)
-	http.HandleFunc("/oauth2/success", oauth2SuccessHandler)
 	http.HandleFunc("/oauth2/failure", oauth2FailureHandler)
 
 	port := os.Getenv("PORT")
@@ -252,5 +220,5 @@ func main() {
 	}
 
 	log.Printf("helloworld: listening on port %s", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }
